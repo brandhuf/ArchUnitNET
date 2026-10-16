@@ -40,8 +40,7 @@ namespace ArchUnitNET.Domain
         public bool IsVirtual { get; }
         public MethodForm MethodForm { get; }
 
-        public List<ITypeInstance<IType>> ParameterInstances { get; } =
-            new List<ITypeInstance<IType>>();
+        public List<MethodParameter> ParameterInstances { get; } = new List<MethodParameter>();
         public IEnumerable<IType> Parameters =>
             ParameterInstances.Select(instance => instance.Type);
         public ITypeInstance<IType> ReturnTypeInstance { get; internal set; }

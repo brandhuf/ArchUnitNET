@@ -112,5 +112,29 @@ namespace ArchUnitNETTests.Domain.Dependencies.Attributes
                 dependency => Assert.True(dependency.Origin.Equals(_originClass))
             );
         }
+
+        [Fact]
+        public void ParameterAttributesAreOnParameterNotMethod()
+        {
+            var exampleParameterAttribute = Architecture.GetClassOfType(
+                typeof(ExampleParameterAttribute)
+            );
+            var methodWithParameterAttribute = _classWithAttribute
+                .GetMethodMembers()
+                .Single(m => m.Name.Contains("MethodWithParameterAttribute"));
+
+            Assert.DoesNotContain(
+                methodWithParameterAttribute.AttributeInstances,
+                a => a.Type.Equals(exampleParameterAttribute)
+            );
+
+            var parameter = methodWithParameterAttribute.ParameterInstances.Single(p =>
+                p.Name == "example"
+            );
+            Assert.Contains(
+                parameter.AttributeInstances,
+                a => a.Type.Equals(exampleParameterAttribute)
+            );
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Text;
 using ArchUnitNET.Domain;
 using static ArchUnitNET.Domain.Visibility;
 using Assembly = ArchUnitNET.Domain.Assembly;
+using Enum = ArchUnitNET.Domain.Enum;
 using Type = ArchUnitNET.Loader.Type;
 
 namespace ArchUnitNETTests.Fluent.Extensions
@@ -75,7 +76,7 @@ namespace ArchUnitNETTests.Fluent.Extensions
             var classType = type.CreateStubType();
             if (type.IsEnum)
             {
-                return new ArchUnitNET.Domain.Enum(classType);
+                return new Enum(classType);
             }
 
             if (type.IsValueType)
@@ -143,8 +144,11 @@ namespace ArchUnitNETTests.Fluent.Extensions
 
             var declaringType = methodBase.DeclaringType.CreateStubIType();
             var parameters = methodBase
-                .CreateStubParameters()
-                .Select(parameter => new TypeInstance<IType>(parameter));
+                .GetParameters()
+                .Select(p => new MethodParameter(
+                    p.Name,
+                    new TypeInstance<IType>(p.ParameterType.CreateStubIType())
+                ));
             var methodForm = methodBase.GetStubMethodForm();
             var isStatic = methodBase.IsStatic;
 

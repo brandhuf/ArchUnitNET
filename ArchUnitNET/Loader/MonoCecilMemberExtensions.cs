@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ArchUnitNET.Domain;
-using ArchUnitNET.Domain.Extensions;
 using JetBrains.Annotations;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -79,13 +79,9 @@ namespace ArchUnitNET.Loader
             this MethodDefinition methodDefinition
         )
         {
-            return methodDefinition
-                .CustomAttributes.Concat(
-                    methodDefinition.Parameters.SelectMany(parameterDefinition =>
-                        parameterDefinition.CustomAttributes
-                    )
-                )
-                .Concat(methodDefinition.MethodReturnType.CustomAttributes);
+            return methodDefinition.CustomAttributes.Concat(
+                methodDefinition.MethodReturnType.CustomAttributes
+            );
         }
 
         internal static ITypeInstance<IType> GetReturnType(
@@ -99,13 +95,14 @@ namespace ArchUnitNET.Loader
                 );
 
         [NotNull]
-        internal static IEnumerable<ITypeInstance<IType>> GetParameters(
+        internal static IEnumerable<MethodParameter> GetParameters(
             this MethodReference method,
             DomainResolver domainResolver
         ) =>
-            method.Parameters.Select(parameter =>
+            method.Parameters.Select(parameter => new MethodParameter(
+                parameter.Name,
                 domainResolver.GetOrCreateStubTypeInstanceFromTypeReference(parameter.ParameterType)
-            );
+            ));
 
         [NotNull]
         internal static IEnumerable<ITypeInstance<IType>> GetGenericParameters(
@@ -276,16 +273,14 @@ namespace ArchUnitNET.Loader
         internal static bool IsIterator(this MethodDefinition methodDefinition)
         {
             return methodDefinition.CustomAttributes.Any(att =>
-                att.AttributeType.FullName
-                == typeof(System.Runtime.CompilerServices.IteratorStateMachineAttribute).FullName
+                att.AttributeType.FullName == typeof(IteratorStateMachineAttribute).FullName
             );
         }
 
         internal static bool IsAsync(this MethodDefinition methodDefinition)
         {
             return methodDefinition.CustomAttributes.Any(att =>
-                att.AttributeType.FullName
-                == typeof(System.Runtime.CompilerServices.AsyncStateMachineAttribute).FullName
+                att.AttributeType.FullName == typeof(AsyncStateMachineAttribute).FullName
             );
         }
 
@@ -300,10 +295,8 @@ namespace ArchUnitNET.Loader
         internal static TypeDefinition GetStateMachineType(this MethodDefinition methodDefinition)
         {
             var stateMachineAttribute = methodDefinition.CustomAttributes.FirstOrDefault(att =>
-                att.AttributeType.FullName
-                    == typeof(System.Runtime.CompilerServices.AsyncStateMachineAttribute).FullName
-                || att.AttributeType.FullName
-                    == typeof(System.Runtime.CompilerServices.IteratorStateMachineAttribute).FullName
+                att.AttributeType.FullName == typeof(AsyncStateMachineAttribute).FullName
+                || att.AttributeType.FullName == typeof(IteratorStateMachineAttribute).FullName
             );
             if (stateMachineAttribute == null || !stateMachineAttribute.HasConstructorArguments)
             {

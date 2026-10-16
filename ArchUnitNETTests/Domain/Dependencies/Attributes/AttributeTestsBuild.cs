@@ -102,12 +102,6 @@ namespace ArchUnitNETTests.Domain.Dependencies.Attributes
                 ),
                 BuildMemberAttributeTestData(
                     typeof(ClassWithExampleAttribute),
-                    nameof(ClassWithExampleAttribute.MethodWithParameterAttribute)
-                        .BuildMethodMemberName(typeof(string)),
-                    typeof(ExampleParameterAttribute)
-                ),
-                BuildMemberAttributeTestData(
-                    typeof(ClassWithExampleAttribute),
                     nameof(ClassWithExampleAttribute.PropertyA),
                     typeof(ExamplePropertyAttribute)
                 ),
@@ -116,12 +110,6 @@ namespace ArchUnitNETTests.Domain.Dependencies.Attributes
                     nameof(ClassWithExampleAttribute.MethodWithReturnAttribute)
                         .BuildMethodMemberName(),
                     typeof(ExampleReturnAttribute)
-                ),
-                BuildMemberAttributeTestData(
-                    typeof(ClassWithExampleAttribute),
-                    nameof(ClassWithExampleAttribute.set_ParameterProperty)
-                        .BuildMethodMemberName(typeof(string)),
-                    typeof(ExampleParameterAttribute)
                 ),
                 BuildMemberAttributeTestData(
                     typeof(ClassWithExampleAttribute),

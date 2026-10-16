@@ -373,6 +373,12 @@ namespace ArchUnitNET.Loader
                 methodMember,
                 domainResolver
             );
+            SetUpAttributesForMethodParameters(
+                methodDefinition,
+                methodMember,
+                type,
+                domainResolver
+            );
             CollectMemberAttributesAndDependencies(
                 type,
                 methodMember,
@@ -380,6 +386,38 @@ namespace ArchUnitNET.Loader
                 methodMember.MemberDependencies,
                 domainResolver
             );
+        }
+
+        private static void SetUpAttributesForMethodParameters(
+            MethodDefinition methodDefinition,
+            MethodMember methodMember,
+            IType type,
+            DomainResolver domainResolver
+        )
+        {
+            foreach (var parameterDefinition in methodDefinition.Parameters)
+            {
+                var methodParameter = methodMember.ParameterInstances.FirstOrDefault(p =>
+                    p.Name == parameterDefinition.Name
+                );
+                if (methodParameter == null || !parameterDefinition.HasCustomAttributes)
+                {
+                    continue;
+                }
+
+                parameterDefinition.CustomAttributes.ForEach(attr =>
+                    AddAttributeArgumentReferenceDependencies(type, attr, domainResolver)
+                );
+                var attributeInstances = CreateAttributesFromCustomAttributes(
+                        parameterDefinition.CustomAttributes,
+                        domainResolver
+                    )
+                    .ToList();
+                methodParameter.AttributeInstances.AddRange(attributeInstances);
+                methodMember.MemberDependencies.AddRange(
+                    attributeInstances.Select(a => new AttributeMemberDependency(methodMember, a))
+                );
+            }
         }
 
         private static void SetUpAttributesForMethodGenericParameters(
@@ -639,7 +677,7 @@ namespace ArchUnitNET.Loader
         {
             var returnType = methodReference.GetReturnType(domainResolver);
             return (returnType != null ? new[] { returnType } : Array.Empty<ITypeInstance<IType>>())
-                .Concat(methodReference.GetParameters(domainResolver))
+                .Concat(methodReference.GetParameters(domainResolver).Select(p => p.TypeInstance))
                 .Concat(methodReference.GetGenericParameters(domainResolver))
                 .Distinct()
                 .Select(signatureType => new MethodSignatureDependency(
